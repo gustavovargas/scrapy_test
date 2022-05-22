@@ -12,6 +12,13 @@ BOT_NAME = 'rightmove'
 SPIDER_MODULES = ['rightmove.spiders']
 NEWSPIDER_MODULE = 'rightmove.spiders'
 
+# playwright
+DOWNLOAD_HANDLERS = {
+    "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+    "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+}
+
+TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 USER_AGENT = 'rightmove (http://example.com)'
 
@@ -20,7 +27,7 @@ FEED_EXPORT_ENCODING = 'utf-8'
 
 ITEM_PIPELINES = {'rightmove.pipelines.RightPipeline': 1000}
 
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32

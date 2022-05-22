@@ -7,12 +7,8 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 
-import scrapy
 from scrapy import signals
 from scrapy.exporters import CsvItemExporter
-from scrapy.exceptions import DropItem
-from scrapy import Request
-import csv
 
 class RightPipeline(object):
     def __init__(self):
@@ -29,7 +25,8 @@ class RightPipeline(object):
         file = open('%s_items.csv' % spider.name, 'w+b')
         self.files[spider] = file
         self.exporter = CsvItemExporter(file)
-        self.exporter.fields_to_export = ['sentencia', 'nro_documento']
+        self.exporter.fields_to_export = ['sale_date', 'price_paid', "property", "url", "source_url", "number_rooms",
+                                          "id", "latitude", "longitude", "date_added", "number_imgs", "name_area"]
         self.exporter.start_exporting()
 
     def spider_closed(self, spider):
