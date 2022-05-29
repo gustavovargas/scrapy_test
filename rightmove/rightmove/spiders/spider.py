@@ -119,7 +119,7 @@ class RightMoveSpider(Spider):
 
         num_bedrooms = response.xpath("//h1[@id='propertyDetailsHeader']/following-sibling::h2//text()").extract_first()
         if "bedroom" in num_bedrooms:
-            num_bedrooms = num_bedrooms.split("bedrooms")[0].strip()
+            num_bedrooms = num_bedrooms.split("bedroom")[0].strip()
             num_bedrooms = int(num_bedrooms)
         else:
             num_bedrooms = 0
