@@ -18,8 +18,8 @@ class RightMoveSpider(Spider):
         return super().start_requests()
 
     def parse(self, response):
-        print("\n\n\nbegin page parse...")
-        print(f"response.url de parse: {response.url}")
+        print("parse foo - starting")
+        print(f"parse foo - response.url: {response.url}")
 
         self.url_page = response.url
         self.name_area = response.xpath("/html/head/title/text()").get().split("Prices in")[-1].strip()
@@ -51,12 +51,12 @@ class RightMoveSpider(Spider):
         if current_page < last_page:
             next_page = current_page + 1
             next_page_url = f"{self.base_url}{next_page}"
-            print("\n\nNew Page\n\n")
+            print("going to next page")
             yield scrapy.Request(url=next_page_url, callback=self.parse)
 
     def parse_item(self, response):
-        print("\n\nbegin parse_item...")
-        print(f"response.url de parse_item: {response.url}")
+        print("parse item foo - starting")
+        print(f"parse item foo - response.url: {response.url}")
         scripts_page = response.css('script::text')
         pattern = "PAGE_MODEL = "
 
@@ -88,10 +88,10 @@ class RightMoveSpider(Spider):
             ml_item['number_imgs'] = len(parsed_script.get("property").get("images"))
             ml_item['name_area'] = self.name_area
 
-            self.item_count += 1
-            print('\n\n\n' + '*' * 10)
-            print(self.item_count)
-            print('*' * 10 + '\n')
+            # self.item_count += 1
+            # print('\n\n\n' + '*' * 10)
+            # print(self.item_count)
+            # print('*' * 10 + '\n')
             # if self.item_count > 40:
             #     raise CloseSpider('item_exceeded')
             yield ml_item
