@@ -46,8 +46,11 @@ class RightMoveSpider(Spider):
 
         for property in properties:
             if property.get("detailUrl"):
-                yield scrapy.Request(url=property.get("detailUrl"), callback=self.parse_item)
-
+                url = property.get("detailUrl")
+                if "Matching" in url:
+                    yield scrapy.Request(url=url, callback=self.parse_item_matching)
+                else:
+                    yield scrapy.Request(url=url, callback=self.parse_item)
         if current_page < last_page:
             next_page = current_page + 1
             next_page_url = f"{self.base_url}{next_page}"
@@ -75,7 +78,7 @@ class RightMoveSpider(Spider):
 
         for transaction in transactions:
             ml_item = RightItem()
-            ml_item['sale_date'] = transaction.get("deedDate")
+            ml_item['sale_date'] = transaction.get("displayDeedDate")
             ml_item['price_paid'] = transaction.get("price")
             ml_item['property'] = f'{parsed_script.get("propertyType")}, {transaction.get("tenure")}'
             ml_item['url'] = response.url
@@ -86,6 +89,58 @@ class RightMoveSpider(Spider):
             ml_item['longitude'] = parsed_script.get("property").get("location").get("longitude")
             ml_item['date_added'] = parsed_script.get("lastListed")
             ml_item['number_imgs'] = len(parsed_script.get("property").get("images"))
+            ml_item['name_area'] = self.name_area
+
+            # self.item_count += 1
+            # print('\n\n\n' + '*' * 10)
+            # print(self.item_count)
+            # print('*' * 10 + '\n')
+            # if self.item_count > 40:
+            #     raise CloseSpider('item_exceeded')
+            yield ml_item
+
+    def parse_item_matching(self, response):
+        print("parse item matching foo - starting")
+        print(f"parse item foo - response.url: {response.url}")
+        table_response = response.xpath("//table[@id='soldrecord']/tbody//tr")
+
+        url_maps_str = response.xpath("//*[@id='minimapwrapper']/img/@src").extract_first()
+        latitude = url_maps_str.split("?center=")[-1].split("&zoom=")[0].split(",")[0]
+        latitude = float(latitude)
+        longitude = url_maps_str.split("?center=")[-1].split("&zoom=")[0].split(",")[1]
+        longitude = float(longitude)
+
+        line_date_added = response.xpath("//*[@id='propertyDetailsHeader']//text()").extract_first()
+        date_added = line_date_added.split("on Rightmove on")[-1].strip()
+
+        line_imgs = response.xpath("//*[@id='tabs-images']/a//text()").extract_first()
+        num_imgs = line_imgs.split("(")[-1].split(")")[0]
+        num_imgs = int(num_imgs)
+
+        num_bedrooms = response.xpath("//h1[@id='propertyDetailsHeader']/following-sibling::h2//text()").extract_first()
+        if "bedroom" in num_bedrooms:
+            num_bedrooms = num_bedrooms.split("bedrooms")[0].strip()
+            num_bedrooms = int(num_bedrooms)
+        else:
+            num_bedrooms = 0
+
+        for transaction in table_response:
+            price_paid = transaction.xpath('td[3]//text()').extract_first()
+            price_paid = price_paid.replace("£", "").replace(",", "")
+            price_paid = int(price_paid)
+
+            ml_item = RightItem()
+            ml_item['sale_date'] = transaction.xpath('td[1]//text()').extract_first()
+            ml_item['price_paid'] = price_paid
+            ml_item['property'] = transaction.xpath('td[2]//text()').extract_first()
+            ml_item['url'] = response.url
+            ml_item['source_url'] = self.url_page
+            ml_item['number_rooms'] = num_bedrooms
+            ml_item['id'] = response.url.split("prop=")[-1].split("&")[0]
+            ml_item['latitude'] = latitude
+            ml_item['longitude'] = longitude
+            ml_item['date_added'] = date_added
+            ml_item['number_imgs'] = num_imgs
             ml_item['name_area'] = self.name_area
 
             # self.item_count += 1
